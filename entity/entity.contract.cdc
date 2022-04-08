@@ -1,4 +1,8 @@
 pub contract Entity {
+  pub event ElementGenerateSuccess(hex:String)
+  pub event ElementGenerateFailure(hex:String)
+
+
   // 元特征
   pub struct MetaFeature {
 
@@ -37,12 +41,53 @@ pub contract Entity {
       if self.features.containsKey(hex) == false {
         let element <- create Element(feature: feature)
         self.features[hex] = feature
+        emit ElementGenerateSuccess(hex:hex)
         return <- element
       } else {
+        emit ElementGenerateFailure(hex:hex)
         return nil
       }
     }
+  } 
+  
+  //Q2,创建资源Collection
+  pub resource Collection {
+    pub let elements : @[Element]
+    pub fun deposit(element: @Element){
+      self.elements.append(<- element)
+    }
+    init(){
+      self.elements <- []
+  } destroy(){
+      destroy  self.elements
+    }
+  //返回MetaFeature Struct
+  pub fun getElement():[MetaFeature]{
+      var Metas:[MetaFeature] = []
+      var index=0
+      while index < self.elements.length{
+        Metas.append(self.elements[index].feature)
+        index = index+1
+      }
+      return Metas
+    }
+     
+    //定义Withdraw
+    pub fun withdraw(hex:String) : @Element?{
+      var index = 0
+      while index < self.elements.length{
+        if self.elements[index].feature.raw == hex {
+          return <- self.elements.remove(at: index)
+        }
+        index = index+1
+     }
+      return nil }
+    }
+ 
+  pub fun createCollection():@Collection{
+    return <- create Collection()
   }
+  
 
   init() {
     // 保存到存储空间

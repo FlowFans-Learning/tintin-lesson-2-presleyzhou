@@ -1,0 +1,20 @@
+import Entity from "./entity.contract.cdc"
+
+transaction(recipient: Address, string:String){
+    let signerCollectionRef : &Entity.Collection
+    let receiverCollectionRef : &Entity.Collection
+    prepare(signer:AuthAccount){
+        self.signerCollectionRef = signer.getCapability<&Entity.Collection>
+(/public/ElementCollection)
+                                            .borrow() ?? panic("Can not borrow signer
+Collection ref")
+        self.receiverCollectionRef =
+getAccount(recipient).getCapability<&Entity.Collection>(/public/ElementCollection)
+ 
+Collection ref")
+    }
+    execute{
+        let element <- self.signerCollectionRef.withdraw(hex:string)
+        self.receiverCollectionRef.deposit(element: <- element!)
+    }
+}
